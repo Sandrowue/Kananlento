@@ -21,10 +21,23 @@ class Game:
         self.bird_imgs = [pygame.transform. rotozoom(x, 0, 1/12)
         for x in bird_imgs]
 
+        bg_imgs = [
+            pygame.image.load(f"images/background/layer_{i}.png")
+            for i in [1, 2, 3]
+        ]
+
+        self.bg_imgs = [
+            pygame.transform.rotozoom(x, 0, 600 / x.get_height()).convert_alpha()
+            for x in bg_imgs
+        ]
+
     def init_objects(self):
         self.bird_y_speed = 0
         self.bird_pos = (150, 100)
         self.bird_lift = False
+        self.bg0_pos = 0
+        self.bg1_pos = 0
+        self.bg2_pos = 0
 
     def run(self):    
         clock = pygame.time.Clock()
@@ -51,6 +64,10 @@ class Game:
 
     def handle_game_logic(self):
 
+        self.bg0_pos -= 0.25
+        self.bg1_pos -= 0.5
+        self.bg2_pos -= 2
+
         bird_y = self.bird_pos[1]
         #Painovoima
         if self.bird_lift:
@@ -63,7 +80,10 @@ class Game:
         self.bird_pos = (self.bird_pos[0], bird_y)
 
     def update_screen(self):
-        self.screen.fill("light blue")
+        #self.screen.fill("light blue")
+        self.screen.blit(self.bg_imgs[0], (self.bg0_pos, 0))
+        self.screen.blit(self.bg_imgs[1], (self.bg1_pos, 0))
+        self.screen.blit(self.bg_imgs[2], (self.bg2_pos, 0))
         
 
         # piirä lintu
