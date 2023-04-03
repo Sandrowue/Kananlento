@@ -18,12 +18,11 @@ class Game:
         self.init_objects()
 
     def init_graphics(self):
-        self.bird_frame = 0
         original_bird_imgs = [pygame.image.load(f"images/bird/frame-{i}.png")
         for i in [1, 2, 3, 4, 5, 6, 7, 8]
         ]
 
-        self.bird_imgs = [pygame.transform. rotozoom(x, 0, 1/11).convert_alpha()
+        self.bird_imgs = [pygame.transform.rotozoom(x, 0, 1/11).convert_alpha()
         for x in original_bird_imgs]
 
         original_bg_imgs = [
@@ -36,19 +35,20 @@ class Game:
         ]'''
 
         self.bg_imgs = [
-            pygame.transform.rotozoom(x, 0, 800 / x.get_height()).convert_alpha()
+            pygame.transform.rotozoom(x, 0, self.screen_height / x.get_height()).convert_alpha()
             for x in original_bg_imgs
         ]
         self.bg_widths = [x.get_width() for x in self.bg_imgs]
+        self.bg_pos = [0, 0, 0]
         '''self.bg_altwidths = [x.get_width() for x in self.bg_altimgs]'''
+
     def init_objects(self):
         self.bird_alive = True
         self.bird_y_speed = 0
-        self.bird_pos = (150, 100)
+        self.bird_pos = (self.screen_width/6, self.screen_height/8)
         self.bird_angle = 0
         self.bird_frame = 0
         self.bird_lift = False
-        self.bg_pos = [0, 0, 0]
 
         '''self.altbg_pos = [0, 0, 0, 0, 0]'''
 
@@ -81,6 +81,8 @@ class Game:
                     self.bird_lift = False
                 elif event.key in (pygame.K_f, pygame.K_F11):
                     self.toggle_fullscreen()
+                elif event.key in (pygame.K_r, pygame.K_RETURN):
+                    self.init_objects()
 
     def toggle_fullscreen(self):
         self.is_fullscreen = not self.is_fullscreen
@@ -105,35 +107,30 @@ class Game:
             self.bg_pos[1] -= 0.75
             self.bg_pos[2] -= 2.4
 
-            bird_y = self.bird_pos[1]
-            #Painovoima
-            if self.bird_alive and self.bird_lift:
-                self.bird_y_speed -= 0.5
-                
-            else:
-                self.bird_y_speed += 0.2
-            
-            if self.bird_lift or not self.bird_alive:
-                self.bird_frame += 1
-
-            bird_y += self.bird_y_speed
-
-            if self.bird_alive:
-                angle = -90 * 0.04 * self.bird_y_speed
-                angle = max(min(angle, 75), -75)
-                
-            # Tarkista onko lintu pudonnut maahan
-            if bird_y > self.screen_height * 0.78:
-                bird_y = self.screen_height * 0.78
-                self.bird_y_speed = -1
-                self.bird_alive = False
-            
-
-
-            # Aseta linnun x-y-koordinaatit self.bird_pos-muuttujaan
-            self.bird_pos = (self.bird_pos[0], bird_y)
-
+        bird_y = self.bird_pos[1]
+        #Painovoima
+        if self.bird_alive and self.bird_lift:
+            self.bird_y_speed -= 0.5
+        else:
+            self.bird_y_speed += 0.2
         
+        if self.bird_lift or not self.bird_alive:
+            self.bird_frame += 1
+
+        bird_y += self.bird_y_speed
+
+        if self.bird_alive:
+            self.bird_angle = -90 * 0.04 * self.bird_y_speed
+            self.bitd_angle = max(min(self.bird_angle, 75), -75)
+
+        # Tarkista onko lintu pudonnut maahan
+        if bird_y > self.screen_height * 0.80:
+            bird_y = self.screen_height * 0.80
+            self.bird_y_speed = -1
+            self.bird_alive = False
+
+        # Aseta linnun x-y-koordinaatit self.bird_pos-muuttujaan
+        self.bird_pos = (self.bird_pos[0], bird_y)
 
     def update_screen(self):
         '''self.screen.fill("light blue")'''
@@ -151,7 +148,8 @@ class Game:
         if self.bird_alive:
             bird_img_i = self.bird_imgs[(self.bird_frame // 2) % 8]
         else:
-            pass
+            bird_img_i = self.bird_imgs[(self.bird_frame // 35) % 2]
+
         bird_img = pygame.transform.rotozoom(bird_img_i, self.bird_angle, 1)
         self.screen.blit(bird_img, self.bird_pos)
 
