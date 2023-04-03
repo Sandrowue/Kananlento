@@ -1,12 +1,13 @@
 import pygame
-
-def main():
-    game = Game()
-    game.run()
+import random
 
 default_screen_size = (1200, 800)
 TEXT_COLOR = (128, 0, 128)
 fps_text_color = (128, 0, 128) # dark blue
+
+def main():
+    game = Game()
+    game.run()
 
 class Game:
     def __init__(self):
@@ -56,6 +57,7 @@ class Game:
         self.bird_angle = 0
         self.bird_frame = 0
         self.bird_lift = False
+        self.obstacles = [Obstacle.make_random(self.screen_width, self.screen_height)]
 
         '''self.altbg_pos = [0, 0, 0, 0, 0]'''
 
@@ -67,7 +69,6 @@ class Game:
             self.bg_pos[i] = self.bg_pos[i] * scale_x
 
     def run(self):    
-        clock = pygame.time.Clock()
         self.running = True
         while self.running:
             self.handle_events()
@@ -140,6 +141,9 @@ class Game:
         # Aseta linnun x-y-koordinaatit self.bird_pos-muuttujaan
         self.bird_pos = (self.bird_pos[0], bird_y)
 
+        for obstacle in self.obstacles:
+            obstacle.move(self.screen_width * 0.005)
+
     def update_screen(self):
         '''self.screen.fill("light blue")'''
         for i in range(len(self.bg_imgs)):
@@ -152,6 +156,9 @@ class Game:
             if self.bg_pos[i] < -self.bg_widths[i]:
                 self.bg_pos[i] += self.bg_widths[i]
 
+        for obstacle in self.obstacles:
+            obstacle.render(self.screen)
+
         # piirä lintu
         if self.bird_alive:
             bird_img_i = self.bird_imgs[(self.bird_frame // 2) % 8]
@@ -160,6 +167,8 @@ class Game:
 
         bird_img = pygame.transform.rotozoom(bird_img_i, self.bird_angle, 1)
         self.screen.blit(bird_img, self.bird_pos)
+
+
 
         if not self.bird_alive:
             game_over_img = self.font_big.render("GAME OVER", True, TEXT_COLOR)
@@ -175,7 +184,36 @@ class Game:
         pygame.display.flip()
  
     
+class Obstacle:
+    def __init__(self, position, upper_height, lower_height, width=100):
+        self.position = position
+        self.upper_height = upper_height
+        self.lower_height = lower_height
+        self.width = width
+        self.color = (0, 120, 0)
     
+    @classmethod
+    def make_random(cls, screen_width, screen_height):
+        h1 = random.randint(int(screen_height * 0.05), int(screen_height * 0.75))
+        h2 = random.randint(int((screen_height - h1) * 0.05), int((screen_height - h1) * 0.75))
+        return cls(upper_height=h1, lower_height=h2, position=screen_width)
+    
+    def move(self, speed):
+        self.position -= speed
+
+    def is_visible(self):
+        return self.position + self.width >= 0
+    
+    def render(self, screen):
+        x = self.position
+        uy = 0
+        uh = self.upper_height
+        pygame.draw.rect(screen, self.color, (x, uy, self.width, uh))
+        ly = screen.get_height() - self.lower_height
+        lh = self.lower_height
+        pygame.draw.rect(screen, self.color, (x, ly, self.width, lh))
+
+        
     
     
 
