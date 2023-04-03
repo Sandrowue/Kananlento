@@ -5,7 +5,7 @@ def main():
     game.run()
 
 default_screen_size = (1200, 800)
-
+TEXT_COLOR = (128, 0, 128)
 fps_text_color = (128, 0, 128) # dark blue
 
 class Game:
@@ -23,6 +23,8 @@ class Game:
         self.init_objects()
 
     def init_graphics(self):
+        big_font_size = int(96 * self.screen_height / 450)
+        self.font_big = pygame.font.Font("font/SyneMono-Regular.ttf", big_font_size)
         original_bird_imgs = [pygame.image.load(f"images/bird/frame-{i}.png")
         for i in [1, 2, 3, 4, 5, 6, 7, 8]
         ]
@@ -158,6 +160,12 @@ class Game:
 
         bird_img = pygame.transform.rotozoom(bird_img_i, self.bird_angle, 1)
         self.screen.blit(bird_img, self.bird_pos)
+
+        if not self.bird_alive:
+            game_over_img = self.font_big.render("GAME OVER", True, TEXT_COLOR)
+            x = self.screen_width / 2 - game_over_img.get_width() / 2
+            y = self.screen_height / 2 - game_over_img.get_height() / 2
+            self.screen.blit(game_over_img, (x, y))
 
         if self.show_fps:
             fps_text = f"{self.clock.get_fps():.1f} fps"
