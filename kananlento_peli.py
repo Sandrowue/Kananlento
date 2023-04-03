@@ -6,14 +6,19 @@ def main():
 
 default_screen_size = (1200, 800)
 
+fps_text_color = (128, 0, 128) # dark blue
+
 class Game:
     def __init__(self):
         pygame.init()
+        self.clock = pygame.time.Clock()
         self.is_fullscreen = False
+        self.show_fps = True
         self.screen = pygame.display.set_mode(default_screen_size) 
         self.screen_width = self.screen.get_width()
         self.screen_height = self.screen.get_height()
         self.running = False  
+        self.font16 = pygame.font.Font('font/SyneMono-Regular.ttf', 16)
         self.init_graphics()
         self.init_objects()
 
@@ -52,11 +57,12 @@ class Game:
 
         '''self.altbg_pos = [0, 0, 0, 0, 0]'''
 
+       
+
     def scale_positions(self, scale_x, scale_y):
         self.bird_pos = (self.bird_pos[0] * scale_x, self.bird_pos[1] * scale_y)
-        self.bg_pos[0] = self.bg_pos[0] * scale_x
-        self.bg_pos[1] = self.bg_pos[1] * scale_x
-        self.bg_pos[2] = self.bg_pos[2] * scale_x 
+        for i in range(len(self.bg_pos)):
+            self.bg_pos[i] = self.bg_pos[i] * scale_x
 
     def run(self):    
         clock = pygame.time.Clock()
@@ -65,7 +71,7 @@ class Game:
             self.handle_events()
             self.handle_game_logic()
             self.update_screen()
-            clock.tick(60) # Odota niin kauan, että ruudun päivitysnopeus on 60fps
+            self.clock.tick(60) # Odota niin kauan, että ruudun päivitysnopeus on 60fps
             
         pygame.quit()    
             
@@ -134,7 +140,7 @@ class Game:
 
     def update_screen(self):
         '''self.screen.fill("light blue")'''
-        for i in [0, 1, 2]:
+        for i in range(len(self.bg_imgs)):
             self.screen.blit(self.bg_imgs[i], (self.bg_pos[i], 0))
         
             if self.bg_pos[i] + self.bg_widths[i] < self.screen_width:
@@ -152,6 +158,11 @@ class Game:
 
         bird_img = pygame.transform.rotozoom(bird_img_i, self.bird_angle, 1)
         self.screen.blit(bird_img, self.bird_pos)
+
+        if self.show_fps:
+            fps_text = f"{self.clock.get_fps():.1f} fps"
+            fps_img = self.font16.render(fps_text, True, fps_text_color)
+            self.screen.blit(fps_img, (0, 0))
 
         pygame.display.flip()
  
