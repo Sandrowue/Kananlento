@@ -57,11 +57,16 @@ class Game:
         self.bird_angle = 0
         self.bird_frame = 0
         self.bird_lift = False
-        self.obstacles = [Obstacle.make_random(self.screen_width, self.screen_height)]
+        self.obstacles = []
+        self.add_obstacle()
 
         '''self.altbg_pos = [0, 0, 0, 0, 0]'''
+    def add_obstacle(self):
+        obstacle = Obstacle.make_random(self.screen_width, self.screen_height)
+        self.obstacles.append(obstacle)
 
-       
+    def remove_oldest_obstacle(self):
+        self.obstacles.pop(0) 
 
     def scale_positions(self, scale_x, scale_y):
         self.bird_pos = (self.bird_pos[0] * scale_x, self.bird_pos[1] * scale_y)
@@ -140,6 +145,14 @@ class Game:
 
         # Aseta linnun x-y-koordinaatit self.bird_pos-muuttujaan
         self.bird_pos = (self.bird_pos[0], bird_y)
+        
+        if self.obstacles[-1].position < self.screen_width / 2:
+            self.add_obstacle()
+
+        if self.obstacles[0].position < self.obstacles[0].width:
+            self.remove_oldest_obstacle()
+
+            print(self.obstacles)
 
         for obstacle in self.obstacles:
             obstacle.move(self.screen_width * 0.005)
