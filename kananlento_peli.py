@@ -5,6 +5,8 @@ default_screen_size = (1200, 800)
 TEXT_COLOR = (128, 0, 128)
 fps_text_color = (128, 0, 128) # dark blue
 
+DEBUG = 0
+
 def main():
     game = Game()
     game.run()
@@ -41,7 +43,8 @@ class Game:
             pygame.image.load(f"images/background/altlayer_{i}.png")
             for i in [1, 2, 3, 4, 5]
         ]'''
-
+        self.bird_radius = self.bird_imgs[0].get_height() / 2 # Likiarvo
+        
         self.bg_imgs = [
             pygame.transform.rotozoom(x, 0, self.screen_height / x.get_height()).convert_alpha()
             for x in original_bg_imgs
@@ -57,7 +60,7 @@ class Game:
         self.bird_angle = 0
         self.bird_frame = 0
         self.bird_lift = False
-        self.obstacles = []
+        self.obstacles: list[Obstacle] = []
         self.add_obstacle()
 
         '''self.altbg_pos = [0, 0, 0, 0, 0]'''
@@ -135,7 +138,7 @@ class Game:
 
         if self.bird_alive:
             self.bird_angle = -90 * 0.04 * self.bird_y_speed
-            self.bitd_angle = max(min(self.bird_angle, 75), -75)
+            self.bird_angle = max(min(self.bird_angle, 75), -75)
 
         # Tarkista onko lintu pudonnut maahan
         if bird_y > self.screen_height * 0.80:
@@ -149,13 +152,19 @@ class Game:
         if self.obstacles[-1].position < self.screen_width / 2:
             self.add_obstacle()
 
-        if self.obstacles[0].position < self.obstacles[0].width:
+        if not self.obstacles[0].is_visible():
             self.remove_oldest_obstacle()
 
-            print(self.obstacles)
-
+            
+        self.bird_collides_with_obstacle = False
         for obstacle in self.obstacles:
-            obstacle.move(self.screen_width * 0.005)
+            if self.bird_alive:
+                obstacle.move(self.screen_width * 0.005)
+            if obstacle.collides_with_circle(self.bird_pos, self.bird_radius):
+                self.bird_collides_with_obstacle = True
+
+        if self.bird_collides_with_obstacle:
+            self.bird_alive = False
 
     def update_screen(self):
         '''self.screen.fill("light blue")'''
@@ -179,15 +188,19 @@ class Game:
             bird_img_i = self.bird_imgs[(self.bird_frame // 35) % 2]
 
         bird_img = pygame.transform.rotozoom(bird_img_i, self.bird_angle, 1)
-        self.screen.blit(bird_img, self.bird_pos)
-
-
+        bird_x = self.bird_pos[0] - bird_img.get_width() / 2 * 1.25
+        bird_y = self.bird_pos[1] - bird_img.get_height() / 2
+        self.screen.blit(bird_img, (bird_x, bird_y))
 
         if not self.bird_alive:
             game_over_img = self.font_big.render("GAME OVER", True, TEXT_COLOR)
             x = self.screen_width / 2 - game_over_img.get_width() / 2
             y = self.screen_height / 2 - game_over_img.get_height() / 2
             self.screen.blit(game_over_img, (x, y))
+
+        if DEBUG:
+            color = (0, 0, 0) if not self.bird_collides_with_obstacle else (255, 0, 0)
+            pygame.draw.circle(self.screen, color, self.bird_pos, self.bird_radius)
 
         if self.show_fps:
             fps_text = f"{self.clock.get_fps():.1f} fps"
@@ -198,24 +211,41 @@ class Game:
  
     
 class Obstacle:
-    def __init__(self, position, upper_height, lower_height, width=100):
+    def __init__(self, position, upper_height, lower_height, hole_size, width=100):
         self.position = position
         self.upper_height = upper_height
         self.lower_height = lower_height
+        self.hole_size = hole_size
         self.width = width
-        self.color = (0, 120, 0)
+        self.color = (0, 128, 0)
     
     @classmethod
     def make_random(cls, screen_width, screen_height):
-        h1 = random.randint(int(screen_height * 0.05), int(screen_height * 0.75))
-        h2 = random.randint(int((screen_height - h1) * 0.05), int((screen_height - h1) * 0.75))
-        return cls(upper_height=h1, lower_height=h2, position=screen_width)
+        hole_size = random.randint(int(screen_height * 0.22), int(screen_height * 0.70))
+        h2 = random.randint(int(screen_height * 0.15), int(screen_height * 0.75))
+        h1 = screen_height - h2 - hole_size
+        return cls(upper_height=h1, lower_height=h2, hole_size=hole_size, position=screen_width)
     
     def move(self, speed):
         self.position -= speed
 
     def is_visible(self):
         return self.position + self.width >= 0
+    
+    def collides_with_circle(self, center, radius):
+        (x, y) = center
+        y1 = self.upper_height
+        y2 = self.upper_height + self.hole_size
+        p = self.position
+        q = self.position + self.width
+
+        if x - radius > q or x + radius < p:
+            return False
+        
+        if y1 > y - radius or y2 < y + radius:
+            return True
+        
+        return False
     
     def render(self, screen):
         x = self.position
@@ -231,11 +261,6 @@ class Obstacle:
     
 
         
-
-
-
-
-
 
 
 if __name__ == "__main__":
