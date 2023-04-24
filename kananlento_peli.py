@@ -31,8 +31,14 @@ class Game:
         self.screen_height = self.screen.get_height()
         self.running = False  
         self.font16 = pygame.font.Font('font/SyneMono-Regular.ttf', 16)
+        self.init_sounds()
         self.init_graphics()
         self.init_objects()
+        self.open_menu()
+
+    def init_sounds(self):
+        self.flying_sound = pygame.mixer.Sound("sound/flying_noise.wav")
+        self.hit_sound = pygame.mixer.Sound("sound/Shout.wav")
 
     def init_graphics(self):
         self.menu.set_font_size(int(48 * self.screen_height / 450))
@@ -123,20 +129,42 @@ class Game:
                     elif event.key == pygame.K_RETURN:
                         item = self.menu.get_selected_item()
                         if item == "New Game":
-                            self.is_in_menu = False
-                            self.init_objects()
+                            self.start_game()
                         elif item == "High Scores":
                             pass
                         elif item == "About":
                             pass
                         elif item == "Quit":
                             self.running = False
-                elif not self.bird_alive:
-                    self.is_in_menu = True
                 elif event.key in (pygame.K_SPACE, pygame.K_UP):
                     self.bird_lift = False
-                elif event.key in (pygame.K_r, pygame.K_RETURN):
-                    self.init_objects()
+                elif event.key == pygame.K_ESCAPE or not self.bird_alive:
+                    self.open_menu()
+
+    def start_game(self):
+        self.play_game_music()
+        self.is_in_menu = False
+        self.init_objects()
+        self.flying_sound.play(-1)
+
+    def open_menu(self):
+        self.play_menu_music()
+        self.is_in_menu = True
+        self.flying_sound.stop()
+
+    def kill_bird(self):
+        if self.bird_alive:
+            self.bird_alive = False
+            self.flying_sound.stop()
+            self.hit_sound.play()
+
+    def play_menu_music(self):
+        pygame.mixer.music.load("sound/Sky Game Menu.mp3")
+        pygame.mixer.music.play(-1)
+
+    def play_game_music(self):
+        pygame.mixer.music.load("sound/Memoraphile - Up in the Sky.wav")
+        pygame.mixer.music.play(-1)
 
     def toggle_fullscreen(self):
         self.is_fullscreen = not self.is_fullscreen
@@ -183,7 +211,7 @@ class Game:
         if bird_y > self.screen_height * 0.80:
             bird_y = self.screen_height * 0.80
             self.bird_y_speed = -1
-            self.bird_alive = False
+            self.kill_bird()
 
         # Aseta linnun x-y-koordinaatit self.bird_pos-muuttujaan
         self.bird_pos = (self.bird_pos[0], bird_y)
@@ -204,7 +232,7 @@ class Game:
                 self.bird_collides_with_obstacle = True
 
         if self.bird_collides_with_obstacle:
-            self.bird_alive = False
+            self.kill_bird()
 
     def update_screen(self):
         '''self.screen.fill("light blue")'''
