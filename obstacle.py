@@ -2,7 +2,7 @@ import pygame
 import random
 
 class Obstacle:
-    def __init__(self, position, upper_height, lower_height, hole_size, width=100):
+    def __init__(self, position, upper_height, lower_height, hole_size, width):
         self.position = position
         self.upper_height = upper_height
         self.lower_height = lower_height
@@ -12,10 +12,11 @@ class Obstacle:
     
     @classmethod
     def make_random(cls, screen_width, screen_height):
+        width = screen_width / 8
         hole_size = random.randint(int(screen_height * 0.22), int(screen_height * 0.70))
         h2 = random.randint(int(screen_height * 0.15), int(screen_height * 0.75))
         h1 = screen_height - h2 - hole_size
-        return cls(upper_height=h1, lower_height=h2, hole_size=hole_size, position=screen_width)
+        return cls(upper_height=h1, lower_height=h2, hole_size=hole_size, position=screen_width, width=width)
     
     def move(self, speed):
         self.position -= speed

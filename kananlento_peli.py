@@ -35,6 +35,7 @@ class Game:
         self.init_objects()
 
     def init_graphics(self):
+        self.menu.set_font_size(int(48 * self.screen_height / 450))
         big_font_size = int(96 * self.screen_height / 450)
         self.font_big = pygame.font.Font("font/SyneMono-Regular.ttf", big_font_size)
         original_bird_imgs = [pygame.image.load(f"images/bird/frame-{i}.png")
@@ -81,10 +82,16 @@ class Game:
     def remove_oldest_obstacle(self):
         self.obstacles.pop(0) 
 
-    def scale_positions(self, scale_x, scale_y):
+    def scale_positions_and_sizes(self, scale_x, scale_y):
         self.bird_pos = (self.bird_pos[0] * scale_x, self.bird_pos[1] * scale_y)
         for i in range(len(self.bg_pos)):
             self.bg_pos[i] = self.bg_pos[i] * scale_x
+        for obstacle in self.obstacles:
+            obstacle.width *= scale_x
+            obstacle.position *= scale_x
+            obstacle.upper_height *= scale_y
+            obstacle.hole_size *= scale_y
+            obstacle.lower_height *= scale_y
 
     def run(self):    
         self.running = True
@@ -102,13 +109,32 @@ class Game:
             if event.type == pygame.QUIT:
                 self.running = False
             elif event.type == pygame.KEYDOWN:
-                if event.key in (pygame.K_SPACE, pygame.K_UP):
-                    self.bird_lift = True
+                if event.key in (pygame.K_SPACE, pygame.K_UP):  
+                    if not self.is_in_menu:
+                        self.bird_lift = True  
             elif event.type == pygame.KEYUP:
-                if event.key in (pygame.K_SPACE, pygame.K_UP):
-                    self.bird_lift = False
-                elif event.key in (pygame.K_f, pygame.K_F11):
+                if event.key in (pygame.K_f, pygame.K_F11):         
                     self.toggle_fullscreen()
+                elif self.is_in_menu:
+                    if event.key == pygame.K_UP:
+                        self.menu.select_previous_item()
+                    elif event.key == pygame.K_DOWN:
+                        self.menu.select_next_item()
+                    elif event.key == pygame.K_RETURN:
+                        item = self.menu.get_selected_item()
+                        if item == "New Game":
+                            self.is_in_menu = False
+                            self.init_objects()
+                        elif item == "High Scores":
+                            pass
+                        elif item == "About":
+                            pass
+                        elif item == "Quit":
+                            self.running = False
+                elif not self.bird_alive:
+                    self.is_in_menu = True
+                elif event.key in (pygame.K_SPACE, pygame.K_UP):
+                    self.bird_lift = False
                 elif event.key in (pygame.K_r, pygame.K_RETURN):
                     self.init_objects()
 
@@ -124,7 +150,7 @@ class Game:
         self.screen_width = screen.get_width()
         self.screen_height = screen.get_height()
         self.init_graphics()
-        self.scale_positions(
+        self.scale_positions_and_sizes(
             scale_x=(self.screen_width / old_width),
             scale_y=(self.screen_height / old_height)
         )
