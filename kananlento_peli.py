@@ -1,4 +1,5 @@
 import pygame
+import random
 from menu import Menu
 from obstacle import Obstacle
 
@@ -78,6 +79,7 @@ class Game:
         self.bird_frame = 0
         self.bird_lift = False
         self.obstacles: list[Obstacle] = []
+        self.next_obstacle_at = self.screen_width / 2
         self.add_obstacle()
 
         '''self.altbg_pos = [0, 0, 0, 0, 0]'''
@@ -216,8 +218,12 @@ class Game:
         # Aseta linnun x-y-koordinaatit self.bird_pos-muuttujaan
         self.bird_pos = (self.bird_pos[0], bird_y)
         
-        if self.obstacles[-1].position < self.screen_width / 2:
+        if self.obstacles[-1].position < self.next_obstacle_at:
             self.add_obstacle()
+            self.next_obstacle_at = random.randint(
+                int(self.screen_width * 0.35),
+                int(self.screen_width * 0.65)
+            )
 
         if not self.obstacles[0].is_visible():
             self.remove_oldest_obstacle()
