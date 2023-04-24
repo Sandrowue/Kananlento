@@ -1,5 +1,6 @@
 import pygame
-import random
+from menu import Menu
+from obstacle import Obstacle
 
 default_screen_size = (1200, 800)
 TEXT_COLOR = (128, 0, 128)
@@ -16,7 +17,14 @@ class Game:
     def __init__(self):
         pygame.init()
         self.clock = pygame.time.Clock()
+        self.menu = Menu([
+            "New Game",
+            "High Scores",
+            "About",
+            "Quit",
+        ])
         self.is_fullscreen = False
+        self.is_in_menu = True
         self.show_fps = True
         self.screen = pygame.display.set_mode(default_screen_size) 
         self.screen_width = self.screen.get_width()
@@ -81,9 +89,10 @@ class Game:
     def run(self):    
         self.running = True
         while self.running:
-            self.handle_events()
-            self.handle_game_logic()
-            self.update_screen()
+            self.handle_events() # Käsittelee tapathumat (eventit)
+            self.handle_game_logic() # Pelin ligiikka(liikkumiset, painovoima, yms.)
+            self.update_screen() # Päivitä näyttö
+            pygame.display.flip() # Päivittää näytölle piirtyt asiat näkyviin
             self.clock.tick(60) # Odota niin kauan, että ruudun päivitysnopeus on 60fps
             
         pygame.quit()    
@@ -121,6 +130,8 @@ class Game:
         )
 
     def handle_game_logic(self):
+        if self.is_in_menu:
+            return
         if self.bird_alive:
             self.bg_pos[0] -= 0.45
             self.bg_pos[1] -= 0.75
@@ -180,6 +191,10 @@ class Game:
                 (self.bg_pos[i] + self.bg_widths[i], 0))
             if self.bg_pos[i] < -self.bg_widths[i]:
                 self.bg_pos[i] += self.bg_widths[i]
+        
+        if self.is_in_menu:
+            self.menu.render(self.screen)
+            return
 
         for obstacle in self.obstacles:
             obstacle.render(self.screen)
@@ -215,62 +230,6 @@ class Game:
             fps_text = f"{self.clock.get_fps():.1f} fps"
             fps_img = self.font16.render(fps_text, True, fps_text_color)
             self.screen.blit(fps_img, (0, 0))
-
-        pygame.display.flip()
- 
-    
-class Obstacle:
-    def __init__(self, position, upper_height, lower_height, hole_size, width=100):
-        self.position = position
-        self.upper_height = upper_height
-        self.lower_height = lower_height
-        self.hole_size = hole_size
-        self.width = width
-        self.color = (0, 128, 0)
-    
-    @classmethod
-    def make_random(cls, screen_width, screen_height):
-        hole_size = random.randint(int(screen_height * 0.22), int(screen_height * 0.70))
-        h2 = random.randint(int(screen_height * 0.15), int(screen_height * 0.75))
-        h1 = screen_height - h2 - hole_size
-        return cls(upper_height=h1, lower_height=h2, hole_size=hole_size, position=screen_width)
-    
-    def move(self, speed):
-        self.position -= speed
-
-    def is_visible(self):
-        return self.position + self.width >= 0
-    
-    def collides_with_circle(self, center, radius):
-        (x, y) = center
-        y1 = self.upper_height
-        y2 = self.upper_height + self.hole_size
-        p = self.position
-        q = self.position + self.width
-
-        if x - radius > q or x + radius < p:
-            return False
-        
-        if y1 > y - radius or y2 < y + radius:
-            return True
-        
-        return False
-    
-    def render(self, screen):
-        x = self.position
-        uy = 0
-        uh = self.upper_height
-        pygame.draw.rect(screen, self.color, (x, uy, self.width, uh))
-        ly = screen.get_height() - self.lower_height
-        lh = self.lower_height
-        pygame.draw.rect(screen, self.color, (x, ly, self.width, lh))
-
-        
-    
-    
-
-        
-
 
 if __name__ == "__main__":
     main()
