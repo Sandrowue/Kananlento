@@ -1,5 +1,6 @@
 import pygame
 import random
+from highscore import HighscoreRecorder
 from menu import Menu
 from obstacle import Obstacle
 
@@ -24,8 +25,10 @@ class Game:
             "About",
             "Quit",
         ])
+        self.highscore_recorder = HighscoreRecorder()
         self.is_fullscreen = False
         self.is_in_menu = True
+        self.is_in_highscore_record = False
         self.show_fps = True
         self.screen = pygame.display.set_mode(default_screen_size) 
         self.screen_width = self.screen.get_width()
@@ -43,6 +46,7 @@ class Game:
 
     def init_graphics(self):
         self.menu.set_font_size(int(48 * self.screen_height / 450))
+        self.highscore_recorder.set_font_size(int(36 * self.screen_height / 450))
         big_font_size = int(96 * self.screen_height / 450)
         self.font_big = pygame.font.Font("font/SyneMono-Regular.ttf", big_font_size)
         original_bird_imgs = [pygame.image.load(f"images/bird/frame-{i}.png")
@@ -141,11 +145,15 @@ class Game:
                 elif event.key in (pygame.K_SPACE, pygame.K_UP):
                     self.bird_lift = False
                 elif event.key == pygame.K_ESCAPE or not self.bird_alive:
-                    self.open_menu()
+                    if not self.is_in_highscore_record:
+                        self.record_highscores()
+                    else:
+                        self.open_menu()
 
     def start_game(self):
         self.play_game_music()
         self.is_in_menu = False
+        self.is_in_highscore_record = False
         self.init_objects()
         self.flying_sound.play(-1)
 
@@ -159,14 +167,27 @@ class Game:
             self.bird_alive = False
             self.flying_sound.stop()
             self.hit_sound.play()
+            pygame.mixer.music.fadeout(2500)
+            
+    def record_highscores(self):
+        self.is_in_highscore_record = True
+        print("High score")
+
+    def record_highscores(self):
+        self.is_in_highscore_record = True
+        print("High Score")
 
     def play_menu_music(self):
         pygame.mixer.music.load("sound/Sky Game Menu.mp3")
         pygame.mixer.music.play(-1)
+        pygame.mixer.music.set_volume(1)
+        pygame.mixer.music.play(loops=-1)
 
     def play_game_music(self):
         pygame.mixer.music.load("sound/Memoraphile - Up in the Sky.wav")
         pygame.mixer.music.play(-1)
+        pygame.mixer.music.set_volume(0.4)
+        pygame.mixer.music.play(loops=-1)
 
     def toggle_fullscreen(self):
         self.is_fullscreen = not self.is_fullscreen
@@ -254,6 +275,10 @@ class Game:
         
         if self.is_in_menu:
             self.menu.render(self.screen)
+            return
+        
+        if self.is_in_highscore_record:
+            self.highscore_recorder.render(self.screen)
             return
 
         for obstacle in self.obstacles:
