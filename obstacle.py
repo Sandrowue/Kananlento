@@ -12,7 +12,7 @@ class Obstacle:
     
     @classmethod
     def make_random(cls, screen_width, screen_height):
-        width = screen_width / 8
+        width = screen_width / 11
         hole_size = random.randint(int(screen_height * 0.22), int(screen_height * 0.70))
         h2 = random.randint(int(screen_height * 0.15), int(screen_height * 0.75))
         h1 = screen_height - h2 - hole_size
