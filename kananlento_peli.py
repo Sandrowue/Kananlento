@@ -1,7 +1,7 @@
 import pygame
 import random
 import enum
-from highscore import HighscoreAction, HighscoreRecorder
+from highscore import (HighscoreAction, HighscoreDisplay, HighscoreRecorder)
 from menu import Menu, MenuAction
 from obstacle import Obstacle
 
@@ -18,8 +18,9 @@ def main():
 
 class ActiveComponent(enum.Enum):
     MENU =  enum.auto()
-    HIGHSCORES = enum.auto()
     GAME = enum.auto()
+    SHOW_HIGHSCORES = enum.auto()
+    RECORD_HIGHSCORES = enum.auto()
 
 class Game:
     def __init__(self):
@@ -27,6 +28,7 @@ class Game:
         self.clock = pygame.time.Clock()
         self.menu = Menu()
         self.highscore_recorder = HighscoreRecorder()
+        self.highscore_display = HighscoreDisplay()
         self.is_fullscreen = False
         self.active_component: ActiveComponent = ActiveComponent.MENU
         self.show_fps = True
@@ -130,10 +132,14 @@ class Game:
                 action = self.menu.handle_event(event)
                 if action:
                     self.handle_menu_action(action)
-            elif self.active_component == ActiveComponent.HIGHSCORES:
+            elif self.active_component == ActiveComponent.SHOW_HIGHSCORES:
+                action = self.highscore_display.handle_event(event)
+                if action:
+                    self.handle_highscore_action(action)
+            elif self.active_component == ActiveComponent.RECORD_HIGHSCORES:
                 action = self.highscore_recorder.handle_event(event)
                 if action:
-                    self.handle_highsore_action(action)
+                    self.handle_highscore_action(action)
 
     def handle_event(self, event): 
         if event.type == pygame.KEYDOWN:
@@ -152,7 +158,8 @@ class Game:
         if action == MenuAction.NEW_GAME:
             self.start_game()
         elif action == MenuAction.HIGHSCORES:
-            pass
+            self.active_component = ActiveComponent.SHOW_HIGHSCORES
+            self.highscore_display.reload_file()
         elif action == MenuAction.ABOUT:
             pass
         elif action == MenuAction.QUIT:
@@ -182,10 +189,12 @@ class Game:
             
 
     def record_highscore(self):
-        self.active_component = ActiveComponent.HIGHSCORES
+        self.active_component = ActiveComponent.RECORD_HIGHSCORES
         self.highscore_recorder.record_highscore(self.score)
 
     def play_menu_music(self):
+
+
         pygame.mixer.music.load("sound/Sky Game Menu.mp3")
         pygame.mixer.music.play(-1)
         pygame.mixer.music.set_volume(1)
@@ -285,9 +294,11 @@ class Game:
             self.menu.render(self.screen)
             return
         
-        if self.active_component == ActiveComponent.HIGHSCORES:
+        elif self.active_component == ActiveComponent.SHOW_HIGHSCORES:
             self.highscore_recorder.render(self.screen)
             return
+        elif self.active_component == ActiveComponent.RECORD_HIGHSCORES:
+            self.highscore_recorder.render(self.screen)
 
         for obstacle in self.obstacles:
             obstacle.render(self.screen)
