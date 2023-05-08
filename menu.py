@@ -18,13 +18,18 @@ class MenuAction(enum.Enum):
 
 
 class Menu:
-    def __init__(self, items,
+    def __init__(self,
         color=DEFAULT_COLOR,
         select_color=DEFAULT_SELECT_COLOR,
         font_file=DEFAULT_FONT_FILE,
         font_size=DEFAULT_FONT_SIZE):
                 
-        self.items = items
+        self.items = [
+            "New Game",
+            "High Scores",
+            "About",
+            "Quit"
+        ]
         self.selected_idx = 0
         self.color = color 
         self.select_color = select_color 
