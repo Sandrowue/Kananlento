@@ -87,7 +87,7 @@ class HighscoreDisplay:
             return f"{date:%d.%m, %H:%M}"
         
         lines = [
-            f"{n:2}, {name:20} {score:4} {format_date(date)}"
+            f"{n:2}, {name[:20]:20} {score:4} {format_date(date):12}"
             for (n, (score, name, date)) in enumerate(entries, 1)
         ]
         texts_and_colors = [

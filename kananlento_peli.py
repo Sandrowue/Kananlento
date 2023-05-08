@@ -278,11 +278,23 @@ class Game:
 
     def update_screen(self):
         '''self.screen.fill("light blue")'''
-        for i in range(len(self.bg_imgs)):
-            if self.active_component != ActiveComponent.GAME and i == 1:
-                break
+        bg_layers = 3 if self.active_component == ActiveComponent.GAME else 1
+        self.update_screen_background(layer_count=bg_layers)
+
+        if self.active_component == ActiveComponent.GAME:
+            self.update_screen_game()
+        elif self.active_component == ActiveComponent.MENU:
+            self.menu.render(self.screen)
+        elif self.active_component == ActiveComponent.SHOW_HIGHSCORES:
+            self.highscore_display.render(self.screen)
+        elif self.active_component == ActiveComponent.RECORD_HIGHSCORES:
+            self.highscore_recorder.render(self.screen)
+
+    def update_screen_background(self, layer_count):
+        layers = self.bg_imgs[:layer_count]
+
+        for i in range(len(layers)):
             self.screen.blit(self.bg_imgs[i], (self.bg_pos[i], 0))
-        
             if self.bg_pos[i] + self.bg_widths[i] < self.screen_width:
                 self.screen.blit(
                 self.bg_imgs[i], 
@@ -290,16 +302,8 @@ class Game:
             if self.bg_pos[i] < -self.bg_widths[i]:
                 self.bg_pos[i] += self.bg_widths[i]
         
-        if self.active_component == ActiveComponent.MENU:
-            self.menu.render(self.screen)
-            return
         
-        elif self.active_component == ActiveComponent.SHOW_HIGHSCORES:
-            self.highscore_recorder.render(self.screen)
-            return
-        elif self.active_component == ActiveComponent.RECORD_HIGHSCORES:
-            self.highscore_recorder.render(self.screen)
-
+    def update_screen_game(self):
         for obstacle in self.obstacles:
             obstacle.render(self.screen)
 
