@@ -35,6 +35,10 @@ class HighscoreRecorder:
         self.score = score
 
     def handle_event(self, event):
+        if event.type == pygame.TEXTINPUT:
+            self.text += event.text
+            return None
+
         if event.type != pygame.KEYUP:
             return None
 
@@ -44,6 +48,8 @@ class HighscoreRecorder:
             self.file.add_entry(name=self.text, score=self.score)
             self.file.save()
             return HighscoreAction.CLOSE
+        elif event.key == pygame.K_BACKSPACE:
+            self.text = self.text[:-1]
         
         return None
 
@@ -51,7 +57,9 @@ class HighscoreRecorder:
     def render(self, screen):
         text_and_colors = [
             ("New highscore!", self.color),
+            (str(self.score), self.color),
             ("Enter your name: ", self.color),
+            (self.text, self.color)
         ]
         render_centered_text_lines(screen, self.font, text_and_colors)
 
@@ -79,7 +87,7 @@ class HighscoreDisplay:
         return None
     
     def render(self, screen):
-        entries = self.file.get_top_10
+        entries = self.file.get_top_10()
 
         def format_date(date):
             if not date:
