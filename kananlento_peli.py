@@ -1,7 +1,7 @@
 import pygame
 import random
 from highscore import HighscoreRecorder
-from menu import Menu
+from menu import Menu, MenuAction
 from obstacle import Obstacle
 
 default_screen_size = (1200, 800)
@@ -118,37 +118,42 @@ class Game:
             
     def handle_events(self):        
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.running = False
-            elif event.type == pygame.KEYDOWN:
-                if event.key in (pygame.K_SPACE, pygame.K_UP):  
-                    if not self.is_in_menu:
-                        self.bird_lift = True  
-            elif event.type == pygame.KEYUP:
-                if event.key in (pygame.K_f, pygame.K_F11):         
-                    self.toggle_fullscreen()
-                elif self.is_in_menu:
-                    if event.key == pygame.K_UP:
-                        self.menu.select_previous_item()
-                    elif event.key == pygame.K_DOWN:
-                        self.menu.select_next_item()
-                    elif event.key == pygame.K_RETURN:
-                        item = self.menu.get_selected_item()
-                        if item == "New Game":
-                            self.start_game()
-                        elif item == "High Scores":
-                            pass
-                        elif item == "About":
-                            pass
-                        elif item == "Quit":
-                            self.running = False
-                elif event.key in (pygame.K_SPACE, pygame.K_UP):
-                    self.bird_lift = False
-                elif event.key == pygame.K_ESCAPE or not self.bird_alive:
-                    if not self.is_in_highscore_record:
-                        self.record_highscores()
-                    else:
-                        self.open_menu()
+            if event.type == pygame.KEYUP and event.key == pygame.K_F11:
+                self.toggle_fullscreen()
+            elif self.is_in_menu:
+                action = self.menu.handle_event(event)
+                if action:
+                    self.handle_menu_action(action)
+            else:
+                self.handle_event(event)
+
+    def handle_event(self, event): 
+        if event.type == pygame.QUIT:
+            self.running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key in (pygame.K_SPACE, pygame.K_UP):  
+                if not self.is_in_menu:
+                    self.bird_lift = True  
+        elif event.type == pygame.KEYUP:
+            if event.key in (pygame.K_f, pygame.K_F11):         
+                self.toggle_fullscreen()
+            elif event.key in (pygame.K_SPACE, pygame.K_UP):
+                self.bird_lift = False
+            elif event.key == pygame.K_ESCAPE or not self.bird_alive:
+                if not self.is_in_highscore_record:
+                    self.record_highscores()
+                else:
+                    self.open_menu()
+
+    def handle_menu_action(self, action: MenuAction):
+        if action == MenuAction.NEW_GAME:
+            self.start_game()
+        elif action == MenuAction.HIGHSCORES:
+            pass
+        elif action == MenuAction.ABOUT:
+            pass
+        elif action == MenuAction.QUIT:
+            self.running = False
 
     def start_game(self):
         self.play_game_music()
